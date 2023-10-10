@@ -16,7 +16,7 @@ model User {
   hash         String
   profilePhoto String?
   email        String         @unique
-  Cart         Cart[]
+  cart         Cart[]
   walletDetail WalletDetail[]
 
   @@map("users")
@@ -33,12 +33,13 @@ model WalletDetail {
 }
 
 model Cart {
-  id          String @id
+  id          Int    @unique
   title       String
   price       String
   category    String
   description String
   image       String
-  userId      Int?
-  users       User?  @relation(fields: [userId], references: [id])
+  userId      Int
+  quantity    Int?
+  user        User   @relation(fields: [userId], references: [id])
 }

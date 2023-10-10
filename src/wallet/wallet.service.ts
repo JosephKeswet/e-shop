@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { WalletDto } from './dto/wallet.dto';
+import { FundWalletDto, WalletDto } from './dto/wallet.dto';
 
 @Injectable()
 export class WalletService {
@@ -55,5 +55,18 @@ export class WalletService {
       'https://api.paystack.co/bank?country=nigeria',
     );
     return data;
+  }
+
+  async fundWallet(dto:FundWalletDto){
+    const fundWallet = await this.prisma.walletDetail.update({
+      where:{
+        walletNumber: dto.walletNumber,
+      },
+      data:{
+        walletBalance: dto.amount
+      }
+    })
+
+    return fundWallet;
   }
 }

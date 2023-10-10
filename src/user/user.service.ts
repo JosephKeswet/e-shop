@@ -26,6 +26,8 @@ export class UserService {
             stream.end(file.buffer);
         });
 
+        const storage = await admin.storage().bucket('gs://e-shop-e3b88.appspot.com/').file(fileName).getMetadata()
+
         // Update the user's profile photo in the database
         const updatedUser = await this.prisma.user.update({
             where: { id },
