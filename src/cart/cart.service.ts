@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductsService } from 'src/products/products.service';
 import {
   AddItemDto,
+  CheckOutDto,
   ClearCartDto,
   DecreaseQuantityDto,
   IncreaseQuantityDto,
@@ -197,6 +198,54 @@ export class CartService {
       }
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async getOrderSummary(userId: string) {
+    const cart = await this.prisma.cart.findMany({
+      where: {
+        userId: parseFloat(userId),
+      },
+    });
+
+    const totalAmount = cart?.map((cartItem) => {
+      return parseFloat(cartItem.price) * cartItem.quantity;
+    });
+
+    return totalAmount.reduce((acc, price) => acc + price, 0);
+  }
+
+  async checkOut(dto: CheckOutDto) {
+    const getWallet = this.prisma.walletDetail.findUnique({
+      where: {
+        userId: parseFloat(dto.userId),
+        walletNumber: dto.walletNumber,
+      },
+    });
+    const walletBalance = (await getWallet).walletBalance;
+    const totalAmount = await this.getOrderSummary(dto.userId);
+    if (totalAmount > walletBalance) {
+      return {
+        success: false,
+        msg: 'Insufficient funds, sapa choke you',
+      };
+    } else if (totalAmount < walletBalance) {
+      const newWalletBalance = await this.prisma.walletDetail.update({
+        data: {
+          walletBalance: walletBalance - totalAmount,
+        },
+        where: {
+          userId: parseFloat(dto.userId),
+          walletNumber: dto.walletNumber,
+        },
+      });
+
+      await this.prisma.cart.deleteMany();
+      return {
+        success: true,
+        msg: 'Your purchase was successful',
+        walletBalance: newWalletBalance,
+      };
     }
   }
 }

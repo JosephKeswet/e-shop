@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { JwtGuard } from 'src/auth/guard';
 import { CartService } from './cart.service';
-import { AddItemDto, ClearCartDto, DecreaseQuantityDto, IncreaseQuantityDto, RemoveFromCartDto } from './dto';
+import { AddItemDto, CheckOutDto, ClearCartDto, DecreaseQuantityDto, IncreaseQuantityDto, RemoveFromCartDto } from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @UseGuards(JwtGuard)
@@ -41,5 +41,15 @@ export class CartController {
     @Put('/decrease')
     decreaseItemQuantity(@Body() dto:DecreaseQuantityDto){
         return this.cartService.decreaseItemQuantity(dto)
+    }
+
+    @Get('/order-summary') 
+    getOrderSummary(@Query('userId') userId:string) {
+        return this.cartService.getOrderSummary(userId)
+    }
+
+    @Post('/checkout') 
+    checkOut(@Body() dto:CheckOutDto) {
+        return this.cartService.checkOut(dto)
     }
 }

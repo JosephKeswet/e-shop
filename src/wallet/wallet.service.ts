@@ -57,15 +57,21 @@ export class WalletService {
     return data;
   }
 
-  async fundWallet(dto:FundWalletDto){
-    const fundWallet = await this.prisma.walletDetail.update({
-      where:{
+  async fundWallet(dto: FundWalletDto) {
+    const currentBalance = await this.prisma.walletDetail.findUnique({
+      where: {
         walletNumber: dto.walletNumber,
       },
-      data:{
-        walletBalance: dto.amount
-      }
-    })
+    });
+
+    const fundWallet = await this.prisma.walletDetail.update({
+      where: {
+        walletNumber: dto.walletNumber,
+      },
+      data: {
+        walletBalance: currentBalance.walletBalance + dto.amount,
+      },
+    });
 
     return fundWallet;
   }

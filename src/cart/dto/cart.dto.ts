@@ -38,3 +38,13 @@ export class IncreaseQuantityDto {
 }
 
 export class DecreaseQuantityDto extends IncreaseQuantityDto {}
+
+export class CheckOutDto {
+    @IsString()
+    @IsNotEmpty()
+    userId:string
+
+    @IsString()
+    @IsNotEmpty()
+    walletNumber:string
+}
