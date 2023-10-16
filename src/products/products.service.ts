@@ -1,9 +1,11 @@
 import { Injectable, UseGuards } from '@nestjs/common';
 import axios from 'axios';
 import { JwtGuard } from 'src/auth/guard';
+import { CategoriesService } from 'src/categories/categories.service';
 
 @Injectable()
 export class ProductsService {
+  constructor(private categoriesService: CategoriesService) {}
   async getProducts() {
     const { data } = await axios.get('https://dummyjson.com/products');
     return data;
@@ -33,6 +35,10 @@ export class ProductsService {
       // Handle the case where products are not available or not an array
       return [];
     }
+    const standard: { low: number | string; high: number | string } = {
+      low: 10,
+      high: 200,
+    };
 
     const sortByCategory = () => {
       return products.filter((product) => product.category === sortValue);
@@ -47,11 +53,6 @@ export class ProductsService {
         : filteredProducts.sort((a, b) => a.price - b.price);
     };
 
-    const standard: { low: number | string; high: number | string } = {
-      low: 10,
-      high: 200,
-    };
-
     if (sortType === categorySortType) {
       return sortByCategory();
     } else if (sortType === priceSortType) {
@@ -63,12 +64,26 @@ export class ProductsService {
     }
   }
 
-  // async search(sortValue:string) {
-  //   const apiProducts = await this.getProducts();
-  //   const products = apiProducts?.products;
-  //   const sortedProducts = products?.filter((product:any) => {
-  //     const lowercaseName = product?.title.toLowerCase();
-  //     const lowercaseSortValue = sortValue.toLowerCase();
-  //   })
-  // }
+  async search(sortValue: string) {
+    const apiProducts = await this.getProducts();
+    const categories: string[] = await this.categoriesService.getCategories();
+    const products = apiProducts?.products;
+
+    if (categories.includes(sortValue.toLowerCase())) {
+      const sortedCategories = await this.sorting(
+        sortValue.toLowerCase(),
+        'category',
+      );
+      return sortedCategories;
+    } else {
+      const sortedProducts = products?.filter((product: any) => {
+        const lowercaseName: string = product?.title.toLowerCase();
+        const lowercaseSortValue: string = sortValue.toLowerCase();
+
+        return lowercaseName.includes(lowercaseSortValue);
+      });
+
+      return sortedProducts;
+    }
+  }
 }
