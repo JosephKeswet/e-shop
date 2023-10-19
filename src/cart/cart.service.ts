@@ -227,7 +227,7 @@ export class CartService {
     if (totalAmount > walletBalance) {
       return {
         success: false,
-        msg: 'Insufficient funds, sapa choke you',
+        msg: 'Insufficient funds sapa choke you',
       };
     } else if (totalAmount < walletBalance) {
       const newWalletBalance = await this.prisma.walletDetail.update({
