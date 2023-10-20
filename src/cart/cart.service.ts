@@ -113,6 +113,25 @@ export class CartService {
     });
 
     try {
+      const productExistInCart = await this.prisma.cart.findUnique({
+        where: {
+          id: parseFloat(dto.productId),
+        },
+      });
+      const currentQuantity = productExistInCart.quantity;
+      if (productExistInCart) {
+        const updatedItem = await this.prisma.cart.update({
+          where: {
+            id: parseFloat(dto.productId),
+            userId: dto.userId,
+          },
+          data: {
+            quantity: currentQuantity + 1,
+          },
+        });
+
+        return updatedItem;
+      }
       if (isUser) {
         const newCartItem = await this.prisma.cart.create({
           data: {
