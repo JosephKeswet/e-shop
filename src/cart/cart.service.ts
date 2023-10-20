@@ -134,8 +134,7 @@ export class CartService {
         msg: 'Item successfully added to cart',
         updatedItem,
       };
-    }
-    if (isUser) {
+    } else if (isUser) {
       const newCartItem = await this.prisma.cart.create({
         data: {
           category: product.category,
