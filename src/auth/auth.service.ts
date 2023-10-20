@@ -40,6 +40,7 @@ export class AuthService {
 
       return {
         ...user,
+        msg:'You have successfully signed up'
       };
     } catch (error) {
 
