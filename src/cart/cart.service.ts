@@ -127,7 +127,10 @@ export class CartService {
           },
         });
 
-        return newCartItem;
+        return {
+          msg: 'Item successfully added to cart',
+          newCartItem,
+        };
       } else {
         throw new NotFoundException(`User with ID ${dto.userId} not found`);
       }

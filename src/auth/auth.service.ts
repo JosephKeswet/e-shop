@@ -46,7 +46,9 @@ export class AuthService {
 
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Credentials taken');
+          return {
+            msg:"Credentials are taken"
+          }
         }
       }
       throw error;
