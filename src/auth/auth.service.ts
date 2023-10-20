@@ -1,8 +1,14 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthDto, ChangePasswordDto, ForgotPasswordDto, LoginDto, VerifyOtpDto } from './dto';
+import {
+  AuthDto,
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginDto,
+  VerifyOtpDto,
+} from './dto';
 import * as argon from 'argon2';
-import * as client from 'whatsapp-web.js'
+import * as client from 'whatsapp-web.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -15,7 +21,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private emailService: EmailService,
-    private otpService:OtpService,
+    private otpService: OtpService,
     private config: ConfigService,
   ) {}
 
@@ -23,32 +29,29 @@ export class AuthService {
     const hash = await argon.hash(dto.password);
 
     try {
-
       const user = await this.prisma.user.create({
         data: {
           username: dto.username,
-          email:dto.email,
+          email: dto.email,
           hash,
           phoneNumber: dto.phoneNumber,
         },
       });
 
       delete user.hash;
-      const accessToken = await this.validateUser(dto)
-      Object.assign(user,accessToken)
-
+      const accessToken = await this.validateUser(dto);
+      Object.assign(user, accessToken);
 
       return {
         ...user,
-        msg:'You have successfully signed up'
+        msg: 'You have successfully signed up',
       };
     } catch (error) {
-
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           return {
-            msg:"Credentials are taken"
-          }
+            msg: 'Credentials are taken',
+          };
         }
       }
       throw error;
@@ -81,27 +84,30 @@ export class AuthService {
     return {
       success: true,
       msg: 'You have successfully signed in',
-        ...user
+      ...user,
     };
   }
 
   // This is to request for a password reset
-  async forgotPassword(dto:ForgotPasswordDto) {
-    return this.sendOtp(dto.email)
+  async forgotPassword(dto: ForgotPasswordDto) {
+    return this.sendOtp(dto.email);
   }
 
-  async sendOtp(email:string) {
-    const verificationInfo = await this.otpService.generateKey()
+  async sendOtp(email: string) {
+    const verificationInfo = await this.otpService.generateKey();
 
-
-    return this.emailService.sendEmail(email,'OTP Verification',`Your verification OTP for e-shop is ${verificationInfo.otp} and ${verificationInfo.secret}`)
+    return this.emailService.sendEmail(
+      email,
+      'OTP Verification',
+      `Your verification OTP for e-shop is ${verificationInfo.otp} and ${verificationInfo.secret}`,
+    );
   }
 
-  async verifyOtp(dto:VerifyOtpDto,secret:string) {
-    return this.otpService.verifyOtp(dto.code,secret)
+  async verifyOtp(dto: VerifyOtpDto, secret: string) {
+    return this.otpService.verifyOtp(dto.code, secret);
   }
 
-  async changePassword(dto:ChangePasswordDto) {
+  async changePassword(dto: ChangePasswordDto) {
     const storedOtpCode = this.otpService.getStoredOtpCode();
 
     if (!storedOtpCode) {
@@ -113,16 +119,16 @@ export class AuthService {
     const hash = await argon.hash(dto.newPassword);
 
     const user = await this.prisma.user.update({
-      where:{
-        email:dto.email
+      where: {
+        email: dto.email,
       },
-      data:{
-        hash
-      }
-    })
+      data: {
+        hash,
+      },
+    });
 
     delete user.hash;
-    
+
     return user;
   }
   // This abstracts the signToken to retrieve the access token
@@ -159,7 +165,7 @@ export class AuthService {
 
     const secret = this.config.get('JWT_SECRET');
     const token = await this.jwt.signAsync(payload, {
-      expiresIn: '60m',
+      expiresIn: '1d',
       secret,
     });
 

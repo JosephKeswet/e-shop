@@ -112,54 +112,54 @@ export class CartService {
       },
     });
 
-    try {
-      const productExistInCart = await this.prisma.cart.findUnique({
+    // try {
+    const productExistInCart = await this.prisma.cart.findUnique({
+      where: {
+        id: parseFloat(dto.productId),
+      },
+    });
+    const currentQuantity = productExistInCart.quantity;
+    if (productExistInCart) {
+      const updatedItem = await this.prisma.cart.update({
         where: {
           id: parseFloat(dto.productId),
+          userId: dto.userId,
+        },
+        data: {
+          quantity: currentQuantity + 1,
         },
       });
-      const currentQuantity = productExistInCart.quantity;
-      if (productExistInCart) {
-        const updatedItem = await this.prisma.cart.update({
-          where: {
-            id: parseFloat(dto.productId),
-            userId: dto.userId,
-          },
-          data: {
-            quantity: currentQuantity + 1,
-          },
-        });
 
-        return updatedItem;
-      }
-      if (isUser) {
-        const newCartItem = await this.prisma.cart.create({
-          data: {
-            category: product.category,
-            description: product.description,
-            id: product.id,
-            image: product.thumbnail,
-            price: product.price.toString(),
-            title: product.title,
-            userId: dto.userId,
-            quantity: 1,
-          },
-        });
-
-        return {
-          msg: 'Item successfully added to cart',
-          newCartItem,
-        };
-      } else {
-        throw new NotFoundException(`User with ID ${dto.userId} not found`);
-      }
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new ForbiddenException('Product already in cart');
-        }
-      }
+      return updatedItem;
     }
+    if (isUser) {
+      const newCartItem = await this.prisma.cart.create({
+        data: {
+          category: product.category,
+          description: product.description,
+          id: product.id,
+          image: product.thumbnail,
+          price: product.price.toString(),
+          title: product.title,
+          userId: dto.userId,
+          quantity: 1,
+        },
+      });
+
+      return {
+        msg: 'Item successfully added to cart',
+        newCartItem,
+      };
+    } else {
+      throw new NotFoundException(`User with ID ${dto.userId} not found`);
+    }
+    // } catch (error) {
+    //   if (error instanceof PrismaClientKnownRequestError) {
+    //     if (error.code === 'P2002') {
+    //       throw new ForbiddenException('Product already in cart');
+    //     }
+    //   }
+    // }
   }
 
   async increaseItemQuantity(dto: IncreaseQuantityDto) {
